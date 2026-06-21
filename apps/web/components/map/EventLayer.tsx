@@ -71,10 +71,9 @@ const pointLayer: CircleLayer = {
 
 interface EventLayerProps {
   events: Event[]
-  onFeatureClick: (eventId: string) => void
 }
 
-export function EventLayer({ events, onFeatureClick }: EventLayerProps) {
+export function EventLayer({ events }: EventLayerProps) {
   const geojson = eventsToGeoJSON(events)
 
   return (

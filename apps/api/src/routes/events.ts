@@ -1,15 +1,13 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import type { Category } from '@watchdog/types'
+import { CATEGORY_META } from '@watchdog/types'
 import { MAX_RADIUS_KM } from '@watchdog/utils'
 import { findEventsNearby } from '../db/geo'
 import { cacheGet, cacheSet, eventsKey } from '../lib/redis'
 import { logger } from '../lib/logger'
 
-const VALID_CATEGORIES: Category[] = [
-  'POLICE', 'FIRE', 'AMBULANCE', 'ROAD', 'CRIME',
-  'DISTURBANCE', 'SAFETY', 'COMMUNITY',
-]
+const VALID_CATEGORIES = Object.keys(CATEGORY_META) as Category[]
 
 const eventsQuerySchema = z.object({
   lat: z.coerce.number().min(-90).max(90),

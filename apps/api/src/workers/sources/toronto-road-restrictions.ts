@@ -50,7 +50,8 @@ export function parseEvents(raw: unknown): CanonicalEvent[] {
         lng,
         confidence: calculateConfidence({ sourceType: 'GOV_DATA', ageMs: 0 }),
         startedAt: startRaw ? new Date(parseInt(startRaw, 10)) : new Date(),
-        expiresAt: endRaw ? new Date(parseInt(endRaw, 10)) : null,
+        // Fall back to 7-day rolling expiry for restrictions without a stated end date.
+        expiresAt: endRaw ? new Date(parseInt(endRaw, 10)) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         rawPayload: { id, road, name, district, type, contractor } as Record<string, unknown>,
         metadata: { road, district, type, roadClass, contractor, impact: currImpact },
       }

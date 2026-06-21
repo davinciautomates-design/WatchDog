@@ -117,7 +117,7 @@ cd packages/utils && npm test # single package
 |----------|-------|---------|
 | `DATABASE_URL` | api/.env | PostgreSQL connection string |
 | `REDIS_URL` | api/.env | Redis connection string |
-| `MAPBOX_ACCESS_TOKEN` | web/.env.local | Mapbox — server-side only, never NEXT_PUBLIC_ |
+| `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` | web/.env.local | Mapbox — must be NEXT_PUBLIC_ because MapCanvas runs client-side |
 | `NEXT_PUBLIC_API_URL` | web/.env.local | API base URL exposed to browser |
 | `CORS_ORIGINS` | api/.env | Comma-separated allowed origins |
 

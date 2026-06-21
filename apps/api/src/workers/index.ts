@@ -19,6 +19,8 @@ import { fetchRaw as fetchTRR, parseEvents as parseTRR, SOURCE_NAME as SRC_TRR }
 import { fetchRaw as fetchEnvCa, parseEvents as parseEnvCa, SOURCE_NAME as SRC_ENVCA } from './sources/environment-canada'
 import { fetchRaw as fetchMci, parseEvents as parseMci, SOURCE_NAME as SRC_MCI } from './sources/tps-major-crimes'
 import { fetchRaw as fetchShootings, parseEvents as parseShootings, SOURCE_NAME as SRC_SHOOTINGS } from './sources/tps-shootings'
+import { fetchRaw as fetchTfsLivecad, parseEvents as parseTfsLivecad, SOURCE_NAME as SRC_TFS_LIVECAD } from './sources/tfs-livecad'
+import { fetchRaw as fetchTpsCfs, parseEvents as parseTpsCfs, SOURCE_NAME as SRC_TPS_CFS } from './sources/tps-cfs'
 import { runEventLifecycle } from './lifecycle'
 
 const JOB_ONTARIO_511          = 'ontario-511'
@@ -26,6 +28,8 @@ const JOB_TORONTO_ROAD         = 'toronto-road-restrictions'
 const JOB_ENV_CANADA           = 'environment-canada'
 const JOB_TPS_MCI              = 'tps-major-crimes'
 const JOB_TPS_SHOOTINGS        = 'tps-shootings'
+const JOB_TFS_LIVECAD          = 'tfs-livecad'
+const JOB_TPS_CFS              = 'tps-cfs'
 const JOB_EVENT_LIFECYCLE      = 'event-lifecycle'
 
 async function runSource(
@@ -42,9 +46,7 @@ async function runSource(
     const events = parseEvents(raw)
     eventCount = events.length
 
-    for (const event of events) {
-      await upsertEvent(event)
-    }
+    await Promise.allSettled(events.map((event) => upsertEvent(event)))
 
     logger.info({ sourceName, eventCount }, 'Data source run complete')
   } catch (err) {
@@ -72,6 +74,12 @@ async function processJob(job: Job): Promise<void> {
     case JOB_TPS_SHOOTINGS:
       await runSource(SRC_SHOOTINGS, fetchShootings, parseShootings)
       break
+    case JOB_TFS_LIVECAD:
+      await runSource(SRC_TFS_LIVECAD, fetchTfsLivecad, parseTfsLivecad)
+      break
+    case JOB_TPS_CFS:
+      await runSource(SRC_TPS_CFS, fetchTpsCfs, parseTpsCfs)
+      break
     case JOB_EVENT_LIFECYCLE:
       await runEventLifecycle()
       break
@@ -82,11 +90,15 @@ async function processJob(job: Job): Promise<void> {
 
 export async function startWorkers(): Promise<void> {
   // Register repeating jobs (idempotent — BullMQ deduplicates by job key)
-  await queue.add(JOB_ONTARIO_511,     {}, { repeat: { every: 2  * 60 * 1000 }, jobId: JOB_ONTARIO_511 })
-  await queue.add(JOB_TORONTO_ROAD,    {}, { repeat: { every: 15 * 60 * 1000 }, jobId: JOB_TORONTO_ROAD })
-  await queue.add(JOB_ENV_CANADA,      {}, { repeat: { every: 10 * 60 * 1000 }, jobId: JOB_ENV_CANADA })
-  await queue.add(JOB_TPS_MCI,         {}, { repeat: { every: 60 * 60 * 1000 }, jobId: JOB_TPS_MCI })
-  await queue.add(JOB_TPS_SHOOTINGS,   {}, { repeat: { every: 60 * 60 * 1000 }, jobId: JOB_TPS_SHOOTINGS })
+  const retryOpts = { attempts: 3, backoff: { type: 'exponential' as const, delay: 5_000 } }
+
+  await queue.add(JOB_ONTARIO_511,     {}, { repeat: { every: 2  * 60 * 1000 }, jobId: JOB_ONTARIO_511,     ...retryOpts })
+  await queue.add(JOB_TORONTO_ROAD,    {}, { repeat: { every: 15 * 60 * 1000 }, jobId: JOB_TORONTO_ROAD,    ...retryOpts })
+  await queue.add(JOB_ENV_CANADA,      {}, { repeat: { every: 10 * 60 * 1000 }, jobId: JOB_ENV_CANADA,      ...retryOpts })
+  await queue.add(JOB_TPS_MCI,         {}, { repeat: { every: 60 * 60 * 1000 }, jobId: JOB_TPS_MCI,         ...retryOpts })
+  await queue.add(JOB_TPS_SHOOTINGS,   {}, { repeat: { every: 60 * 60 * 1000 }, jobId: JOB_TPS_SHOOTINGS,   ...retryOpts })
+  await queue.add(JOB_TFS_LIVECAD,     {}, { repeat: { every:  2 * 60 * 1000 }, jobId: JOB_TFS_LIVECAD,     ...retryOpts })
+  await queue.add(JOB_TPS_CFS,         {}, { repeat: { every:  2 * 60 * 1000 }, jobId: JOB_TPS_CFS,         ...retryOpts })
   await queue.add(JOB_EVENT_LIFECYCLE, {}, { repeat: { every: 5  * 60 * 1000 }, jobId: JOB_EVENT_LIFECYCLE })
 
   const worker = createWorker(processJob)
@@ -103,6 +115,8 @@ export async function startWorkers(): Promise<void> {
     runSource(SRC_ENVCA, fetchEnvCa, parseEnvCa),
     runSource(SRC_MCI, fetchMci, parseMci),
     runSource(SRC_SHOOTINGS, fetchShootings, parseShootings),
+    runSource(SRC_TFS_LIVECAD, fetchTfsLivecad, parseTfsLivecad),
+    runSource(SRC_TPS_CFS, fetchTpsCfs, parseTpsCfs),
     runEventLifecycle(),
   ])
 }

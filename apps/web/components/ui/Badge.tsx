@@ -9,7 +9,7 @@ interface CategoryBadgeProps {
 }
 
 export function CategoryBadge({ category, size = 'md', className }: CategoryBadgeProps) {
-  const meta = CATEGORY_META[category]
+  const meta = CATEGORY_META[category] ?? { label: category, color: '#6B7280' }
 
   return (
     <span

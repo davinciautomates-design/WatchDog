@@ -156,12 +156,10 @@ export async function upvoteReport(reportId: string, ipHash: string): Promise<Up
     upvoteCount: updated.upvoteCount,
   })
 
-  // Extend TTL by 2h per upvote (capped at 24h total)
+  // Extend TTL by 2h per upvote. communityReportTtlExtensionHours caps at 18h,
+  // so the max total (BASE 6h + 18h) equals MAX_TTL_HOURS (24h) exactly.
   const extensionHours = communityReportTtlExtensionHours(updated.upvoteCount)
-  const newExpiry = new Date(Date.now() + (BASE_TTL_HOURS + extensionHours) * 60 * 60 * 1000)
-  const expiresAt = newExpiry > new Date(Date.now() + MAX_TTL_HOURS * 60 * 60 * 1000)
-    ? new Date(Date.now() + MAX_TTL_HOURS * 60 * 60 * 1000)
-    : newExpiry
+  const expiresAt = new Date(Date.now() + (BASE_TTL_HOURS + extensionHours) * 60 * 60 * 1000)
 
   await prisma.report.update({ where: { id: reportId }, data: { confidence: newConfidence } })
 

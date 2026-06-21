@@ -86,7 +86,9 @@ export function parseEvents(raw: unknown): CanonicalEvent[] {
         lng: centroid.lng,
         confidence: Math.min(100, base + confidenceBonus),
         startedAt: updated ? new Date(updated) : new Date(),
-        expiresAt: null,
+        // 48h rolling expiry; each poll resets it so active alerts stay visible.
+        // Alerts that disappear from the feed expire naturally after 48h.
+        expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
         rawPayload: { id, title, severity, eventType } as Record<string, unknown>,
         metadata: { severity, eventType, lang: 'en-CA' },
       }

@@ -1,15 +1,6 @@
-import type { ApiResponse, Event, Category } from '@watchdog/types'
+import type { ApiResponse, Event, EventsQueryParams } from '@watchdog/types'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
-
-export interface EventsQueryParams {
-  lat: number
-  lng: number
-  radiusKm?: number
-  categories?: Category[]
-  page?: number
-  limit?: number
-}
 
 export interface SubmitReportParams {
   category: string

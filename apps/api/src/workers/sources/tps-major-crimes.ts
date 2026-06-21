@@ -39,9 +39,11 @@ interface ArcGISResponse {
 }
 
 export async function fetchRaw(): Promise<unknown> {
-  const year = new Date().getFullYear().toString()
+  // Limit to the last 30 days so old incidents don't stay on the map permanently.
+  // ArcGIS DATE fields require a quoted date string, not epoch ms.
+  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
   const params = new URLSearchParams({
-    where: `OCC_YEAR='${year}'`,
+    where: `OCC_DATE >= DATE '${cutoff}'`,
     outFields: 'EVENT_UNIQUE_ID,OCC_DATE,OCC_YEAR,OCC_MONTH,OCC_DAY,OCC_HOUR,LAT_WGS84,LONG_WGS84,CSI_CATEGORY,OFFENCE,PREMISES_TYPE,NEIGHBOURHOOD_158',
     orderByFields: 'OCC_DATE DESC',
     resultRecordCount: '2000',
@@ -69,7 +71,7 @@ export function parseEvents(raw: unknown): CanonicalEvent[] {
       return {
         sourceId: a.EVENT_UNIQUE_ID,
         sourceType: 'GOV_DATA',
-        category: 'CRIME',
+        category: 'POLICE',
         title: `${category}: ${a.OFFENCE}`,
         description: [
           a.PREMISES_TYPE ? `Location type: ${a.PREMISES_TYPE}` : '',
@@ -80,9 +82,9 @@ export function parseEvents(raw: unknown): CanonicalEvent[] {
         lng: a.LONG_WGS84,
         confidence: calculateConfidence({ sourceType: 'GOV_DATA', ageMs: Date.now() - occDate.getTime() }),
         startedAt: occDate,
-        // TPS data has a ~3 month publication lag; expire relative to import
-        // time so incidents stay visible while we keep polling this source.
-        expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+        // 7-day rolling expiry: incidents within our 30-day query window stay
+        // visible for a week. Each hourly poll resets the expiry for active records.
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         rawPayload: a as unknown as Record<string, unknown>,
         metadata: {
           eventId: a.EVENT_UNIQUE_ID,

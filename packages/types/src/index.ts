@@ -7,7 +7,6 @@ export type Category =
   | 'FIRE'
   | 'AMBULANCE'
   | 'ROAD'
-  | 'CRIME'
   | 'DISTURBANCE'
   | 'SAFETY'
   | 'COMMUNITY'
@@ -92,11 +91,10 @@ export interface CategoryMeta {
 }
 
 export const CATEGORY_META: Record<Category, CategoryMeta> = {
-  POLICE: { id: 'POLICE', label: 'Police', color: '#3B82F6', icon: 'shield' },
+  POLICE: { id: 'POLICE', label: 'Police & Crime', color: '#3B82F6', icon: 'shield' },
   FIRE: { id: 'FIRE', label: 'Fire', color: '#EF4444', icon: 'flame' },
   AMBULANCE: { id: 'AMBULANCE', label: 'Ambulance', color: '#22C55E', icon: 'cross' },
   ROAD: { id: 'ROAD', label: 'Road Closure', color: '#F97316', icon: 'cone' },
-  CRIME: { id: 'CRIME', label: 'Crime', color: '#A855F7', icon: 'alert' },
   DISTURBANCE: { id: 'DISTURBANCE', label: 'Disturbance', color: '#EAB308', icon: 'megaphone' },
   SAFETY: { id: 'SAFETY', label: 'Safety Alert', color: '#14B8A6', icon: 'warning' },
   COMMUNITY: { id: 'COMMUNITY', label: 'Community', color: '#6B7280', icon: 'users' },
@@ -108,7 +106,6 @@ export const EVENT_TTL_HOURS: Record<Category, number> = {
   FIRE: 4,
   AMBULANCE: 4,
   ROAD: 24,
-  CRIME: 12,
   DISTURBANCE: 2,
   SAFETY: 48,
   COMMUNITY: 6,

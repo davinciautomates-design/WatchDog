@@ -16,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useUI } from '@/store/ui'
 import { submitReport } from '@/lib/api-client'
 
-const REPORTABLE: Category[] = ['POLICE', 'FIRE', 'AMBULANCE', 'CRIME', 'DISTURBANCE', 'SAFETY', 'COMMUNITY']
+const REPORTABLE: Category[] = ['POLICE', 'FIRE', 'AMBULANCE', 'DISTURBANCE', 'SAFETY', 'COMMUNITY']
 
 interface ReportDialogProps {
   userLat: number | null

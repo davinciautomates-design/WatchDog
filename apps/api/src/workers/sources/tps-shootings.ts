@@ -32,9 +32,9 @@ interface ArcGISResponse {
 }
 
 export async function fetchRaw(): Promise<unknown> {
-  const year = new Date().getFullYear().toString()
+  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
   const params = new URLSearchParams({
-    where: `OCC_YEAR='${year}'`,
+    where: `OCC_DATE >= DATE '${cutoff}'`,
     outFields: 'EVENT_UNIQUE_ID,OCC_DATE,OCC_YEAR,OCC_MONTH,OCC_DAY,OCC_HOUR,OCC_TIME_RANGE,DIVISION,DEATH,INJURIES,EVENT_TYPE,NEIGHBOURHOOD_158,LAT_WGS84,LONG_WGS84',
     orderByFields: 'OCC_DATE DESC',
     resultRecordCount: '1000',
@@ -68,7 +68,7 @@ export function parseEvents(raw: unknown): CanonicalEvent[] {
       return {
         sourceId: a.EVENT_UNIQUE_ID,
         sourceType: 'OFFICIAL_API',
-        category: 'CRIME',
+        category: 'POLICE',
         title,
         description: [
           a.NEIGHBOURHOOD_158 ? `Neighbourhood: ${a.NEIGHBOURHOOD_158}` : '',
@@ -77,11 +77,9 @@ export function parseEvents(raw: unknown): CanonicalEvent[] {
         ].filter(Boolean).join(' · '),
         lat: a.LAT_WGS84,
         lng: a.LONG_WGS84,
-        // Shootings rank higher — OFFICIAL_API base + recency boost
         confidence: Math.min(100, calculateConfidence({ sourceType: 'OFFICIAL_API', ageMs: Date.now() - occDate.getTime() }) + (a.DEATH > 0 ? 5 : 0)),
         startedAt: occDate,
-        // Rolling expiry from import time — TPS data has a publication lag.
-        expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         rawPayload: a as unknown as Record<string, unknown>,
         metadata: {
           eventId: a.EVENT_UNIQUE_ID,

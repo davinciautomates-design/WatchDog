@@ -3,13 +3,10 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Category } from '@watchdog/types'
+import { CATEGORY_META } from '@watchdog/types'
 import { MAX_RADIUS_KM } from '@watchdog/utils'
 
-// All categories on by default so the map shows everything on first load.
-const ALL_CATEGORIES: Category[] = [
-  'POLICE', 'FIRE', 'AMBULANCE', 'ROAD',
-  'CRIME', 'DISTURBANCE', 'SAFETY', 'COMMUNITY',
-]
+const ALL_CATEGORIES = Object.keys(CATEGORY_META) as Category[]
 
 interface FiltersState {
   categories: Category[]
