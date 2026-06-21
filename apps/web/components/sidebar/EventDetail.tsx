@@ -1,10 +1,13 @@
 'use client'
 
-import { X, MapPin, Clock, Shield } from 'lucide-react'
+import { useState } from 'react'
+import { X, MapPin, Clock, Shield, ThumbsUp } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import type { Event } from '@watchdog/types'
 import { formatEventDateTime, formatTimeAgo } from '@watchdog/utils'
 import { CategoryBadge } from '@/components/ui/Badge'
 import { useUI } from '@/store/ui'
+import { upvoteReport } from '@/lib/api-client'
 
 interface EventDetailProps {
   event: Event
@@ -12,6 +15,26 @@ interface EventDetailProps {
 
 export function EventDetail({ event }: EventDetailProps) {
   const setSelectedEventId = useUI((s) => s.setSelectedEventId)
+  const queryClient = useQueryClient()
+  const [upvoted, setUpvoted] = useState(false)
+  const [upvoting, setUpvoting] = useState(false)
+
+  // reportId is stored in metadata for USER events
+  const reportId = (event.metadata as Record<string, string>)?.reportId
+
+  async function handleUpvote() {
+    if (!reportId || upvoted || upvoting) return
+    setUpvoting(true)
+    try {
+      await upvoteReport(reportId)
+      setUpvoted(true)
+      await queryClient.invalidateQueries({ queryKey: ['events'] })
+    } catch {
+      // silently ignore — already upvoted or network error
+    } finally {
+      setUpvoting(false)
+    }
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -65,6 +88,23 @@ export function EventDetail({ event }: EventDetailProps) {
             </span>
           </div>
         </div>
+
+        {/* Upvote button for community reports */}
+        {event.sourceType === 'USER' && reportId && (
+          <button
+            onClick={handleUpvote}
+            disabled={upvoted || upvoting}
+            className={[
+              'flex items-center gap-2 w-full rounded-md border px-3 py-2 text-sm font-medium transition-colors',
+              upvoted
+                ? 'border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400 cursor-default'
+                : 'border-border hover:bg-accent cursor-pointer',
+            ].join(' ')}
+          >
+            <ThumbsUp className="h-4 w-4" />
+            {upvoted ? 'Upvoted — thanks!' : upvoting ? 'Upvoting…' : 'Upvote this report'}
+          </button>
+        )}
 
         {event.status === 'EXPIRING' && (
           <div className="rounded-md bg-amber-500/10 border border-amber-500/20 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">

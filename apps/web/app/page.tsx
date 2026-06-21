@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic'
 import { Header } from '@/components/layout/Header'
 import { Sidebar } from '@/components/sidebar/Sidebar'
+import { ReportDialog } from '@/components/reports/ReportDialog'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { useEvents } from '@/hooks/useEvents'
 
@@ -40,6 +41,8 @@ export default function HomePage() {
           />
         </main>
       </div>
+
+      <ReportDialog userLat={lat} userLng={lng} />
     </div>
   )
 }

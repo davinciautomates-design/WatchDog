@@ -2,6 +2,7 @@ import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import { healthRoute } from './routes/health'
 import { eventsRoute } from './routes/events'
+import { reportsRoute } from './routes/reports'
 import { startWorkers } from './workers'
 import { logger } from './lib/logger'
 
@@ -16,6 +17,7 @@ async function build() {
 
   await server.register(healthRoute)
   await server.register(eventsRoute)
+  await server.register(reportsRoute)
 
   return server
 }

@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
-import { Sun, Moon, Monitor, SidebarIcon } from 'lucide-react'
+import { Sun, Moon, Monitor, SidebarIcon, TriangleAlert } from 'lucide-react'
 import { useUI } from '@/store/ui'
 
 export function Header() {
   const { resolvedTheme, setTheme } = useTheme()
   const toggleSidebar = useUI((s) => s.toggleSidebar)
+  const openReportDialog = useUI((s) => s.openReportDialog)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => setMounted(true), [])
@@ -40,6 +41,15 @@ export function Header() {
       </div>
 
       <div className="ml-auto flex items-center gap-2">
+        <button
+          onClick={openReportDialog}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 transition-colors"
+          aria-label="Report an incident"
+        >
+          <TriangleAlert className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Report</span>
+        </button>
+
         <button
           onClick={cycleTheme}
           className="p-2 rounded-md hover:bg-accent transition-colors"
