@@ -71,6 +71,8 @@ export function MapCanvas({ events, userLat, userLng, usingDefaultLocation }: Ma
   }
 
   return (
+    // pb-14 on mobile offsets map controls above the bottom sheet handle (3.5rem)
+    <div className="w-full h-full pb-14 lg:pb-0">
     <Map
       ref={mapRef}
       mapboxAccessToken={MAPBOX_TOKEN}
@@ -108,5 +110,6 @@ export function MapCanvas({ events, userLat, userLng, usingDefaultLocation }: Ma
 
       <EventLayer events={events} onFeatureClick={setSelectedEventId} />
     </Map>
+    </div>
   )
 }

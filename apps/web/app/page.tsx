@@ -33,6 +33,13 @@ export default function HomePage() {
         />
 
         <main className="flex-1 relative min-w-0">
+          {/* Top loading bar — shows during initial fetch and background refreshes */}
+          {isLoading && (
+            <div className="absolute top-0 inset-x-0 z-10 h-0.5 overflow-hidden">
+              <div className="h-full bg-blue-500 animate-[loading-bar_1.5s_ease-in-out_infinite]" />
+            </div>
+          )}
+
           <MapCanvas
             events={events}
             userLat={lat}

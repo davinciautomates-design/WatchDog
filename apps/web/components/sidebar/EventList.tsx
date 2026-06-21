@@ -1,6 +1,8 @@
 'use client'
 
+import { useQueryClient } from '@tanstack/react-query'
 import { clsx } from 'clsx'
+import { AlertCircle, RefreshCw } from 'lucide-react'
 import type { Event } from '@watchdog/types'
 import { formatTimeAgo } from '@watchdog/utils'
 import { CategoryBadge } from '@/components/ui/Badge'
@@ -16,21 +18,39 @@ interface EventListProps {
 export function EventList({ events, isLoading, isError, usingDefaultLocation }: EventListProps) {
   const selectedEventId = useUI((s) => s.selectedEventId)
   const setSelectedEventId = useUI((s) => s.setSelectedEventId)
+  const queryClient = useQueryClient()
 
   if (isError) {
     return (
-      <div className="flex flex-col items-center justify-center h-40 text-center px-4">
-        <p className="text-sm text-destructive font-medium">Failed to load events</p>
-        <p className="text-xs text-muted-foreground mt-1">Check that the API server is running</p>
+      <div className="flex flex-col items-center justify-center gap-3 py-12 px-6 text-center">
+        <AlertCircle className="h-8 w-8 text-destructive/70" />
+        <div>
+          <p className="text-sm font-medium">Failed to load events</p>
+          <p className="text-xs text-muted-foreground mt-1">The API may be temporarily unavailable</p>
+        </div>
+        <button
+          onClick={() => queryClient.invalidateQueries({ queryKey: ['events'] })}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+          Retry
+        </button>
       </div>
     )
   }
 
   if (isLoading && events.length === 0) {
     return (
-      <div className="p-4 space-y-2">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-14 rounded-md bg-muted animate-pulse" />
+      <div className="p-3 space-y-2">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="rounded-md p-3 border border-border space-y-2">
+            <div className="flex gap-2">
+              <div className="h-4 w-16 rounded-full bg-muted animate-pulse" />
+              <div className="h-4 w-10 rounded bg-muted animate-pulse ml-auto" />
+            </div>
+            <div className="h-3.5 w-3/4 rounded bg-muted animate-pulse" />
+            <div className="h-3 w-1/2 rounded bg-muted animate-pulse" />
+          </div>
         ))}
       </div>
     )
