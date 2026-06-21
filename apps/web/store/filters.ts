@@ -37,7 +37,7 @@ export const useFilters = create<FiltersState>()(
 
       setRadius: (km) => set({ radiusKm: Math.min(km, MAX_RADIUS_KM) }),
     }),
-    { name: 'watchdog-filters' },
+    { name: 'watchdog-filters', skipHydration: true },
   ),
 )
 

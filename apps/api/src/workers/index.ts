@@ -16,10 +16,12 @@ import { logger } from '../lib/logger'
 import { upsertEvent, recordSourceRun } from '../services/EventService'
 import { fetchRaw as fetch511, parseEvents as parse511, SOURCE_NAME as SRC_511 } from './sources/ontario-511'
 import { fetchRaw as fetchTRR, parseEvents as parseTRR, SOURCE_NAME as SRC_TRR } from './sources/toronto-road-restrictions'
+import { fetchRaw as fetchEnvCa, parseEvents as parseEnvCa, SOURCE_NAME as SRC_ENVCA } from './sources/environment-canada'
 import { runEventLifecycle } from './lifecycle'
 
 const JOB_ONTARIO_511          = 'ontario-511'
 const JOB_TORONTO_ROAD         = 'toronto-road-restrictions'
+const JOB_ENV_CANADA           = 'environment-canada'
 const JOB_EVENT_LIFECYCLE      = 'event-lifecycle'
 
 async function runSource(
@@ -57,6 +59,9 @@ async function processJob(job: Job): Promise<void> {
     case JOB_TORONTO_ROAD:
       await runSource(SRC_TRR, fetchTRR, parseTRR)
       break
+    case JOB_ENV_CANADA:
+      await runSource(SRC_ENVCA, fetchEnvCa, parseEnvCa)
+      break
     case JOB_EVENT_LIFECYCLE:
       await runEventLifecycle()
       break
@@ -69,6 +74,7 @@ export async function startWorkers(): Promise<void> {
   // Register repeating jobs (idempotent — BullMQ deduplicates by job key)
   await queue.add(JOB_ONTARIO_511,     {}, { repeat: { every: 2  * 60 * 1000 }, jobId: JOB_ONTARIO_511 })
   await queue.add(JOB_TORONTO_ROAD,    {}, { repeat: { every: 15 * 60 * 1000 }, jobId: JOB_TORONTO_ROAD })
+  await queue.add(JOB_ENV_CANADA,      {}, { repeat: { every: 10 * 60 * 1000 }, jobId: JOB_ENV_CANADA })
   await queue.add(JOB_EVENT_LIFECYCLE, {}, { repeat: { every: 5  * 60 * 1000 }, jobId: JOB_EVENT_LIFECYCLE })
 
   const worker = createWorker(processJob)
@@ -82,6 +88,7 @@ export async function startWorkers(): Promise<void> {
   await Promise.allSettled([
     runSource(SRC_511, fetch511, parse511),
     runSource(SRC_TRR, fetchTRR, parseTRR),
+    runSource(SRC_ENVCA, fetchEnvCa, parseEnvCa),
     runEventLifecycle(),
   ])
 }

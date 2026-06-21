@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import type * as GeoJSON from 'geojson'
-import Map, { NavigationControl, GeolocateControl, type MapRef, type MapLayerMouseEvent } from 'react-map-gl'
+import Map, { NavigationControl, GeolocateControl, Marker, type MapRef, type MapLayerMouseEvent } from 'react-map-gl'
 import { useTheme } from 'next-themes'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import type { Event } from '@watchdog/types'
@@ -19,12 +19,16 @@ const MAP_STYLE = {
 
 interface MapCanvasProps {
   events: Event[]
+  userLat: number | null
+  userLng: number | null
+  usingDefaultLocation: boolean
 }
 
-export function MapCanvas({ events }: MapCanvasProps) {
+export function MapCanvas({ events, userLat, userLng, usingDefaultLocation }: MapCanvasProps) {
   const mapRef = useRef<MapRef>(null)
   const { resolvedTheme } = useTheme()
   const setSelectedEventId = useUI((s) => s.setSelectedEventId)
+  const [mapError, setMapError] = useState<string | null>(null)
 
   const mapStyle = resolvedTheme === 'dark' ? MAP_STYLE.dark : MAP_STYLE.light
 
@@ -35,10 +39,8 @@ export function MapCanvas({ events }: MapCanvasProps) {
         setSelectedEventId(null)
         return
       }
-      // Cast to GeoJSON.Feature since react-map-gl's GeoJSONFeature narrows the type
       const feature = features[0] as unknown as GeoJSON.Feature<GeoJSON.Point>
       if ((feature.properties as Record<string, unknown>)?.point_count) {
-        // Cluster click → zoom in to the cluster centre
         mapRef.current?.easeTo({
           center: feature.geometry.coordinates as [number, number],
           zoom: (mapRef.current.getZoom() ?? 11) + 2,
@@ -59,6 +61,15 @@ export function MapCanvas({ events }: MapCanvasProps) {
     )
   }
 
+  if (mapError) {
+    return (
+      <div className="flex h-full items-center justify-center bg-muted text-muted-foreground flex-col gap-2">
+        <p className="font-medium">Map failed to load</p>
+        <p className="text-sm max-w-sm text-center">{mapError}</p>
+      </div>
+    )
+  }
+
   return (
     <Map
       ref={mapRef}
@@ -73,13 +84,28 @@ export function MapCanvas({ events }: MapCanvasProps) {
       interactiveLayerIds={EVENT_INTERACTIVE_LAYERS}
       onClick={handleMapClick}
       cursor="auto"
+      onError={(e) => setMapError(e.error?.message ?? 'Unknown map error')}
     >
       <NavigationControl position="bottom-right" />
-      <GeolocateControl
-        position="bottom-right"
-        trackUserLocation
-        showAccuracyCircle
-      />
+      <GeolocateControl position="bottom-right" trackUserLocation showAccuracyCircle />
+
+      {userLat != null && userLng != null && !usingDefaultLocation && (
+        <Marker longitude={userLng} latitude={userLat} anchor="center">
+          <div style={{ position: 'relative', width: 20, height: 20 }}>
+            <div style={{
+              position: 'absolute', inset: 0, borderRadius: '50%',
+              backgroundColor: '#3B82F6', opacity: 0.25,
+              animation: 'ping 1.5s cubic-bezier(0,0,0.2,1) infinite',
+            }} />
+            <div style={{
+              position: 'absolute', inset: 3, borderRadius: '50%',
+              backgroundColor: '#3B82F6', border: '2px solid white',
+              boxShadow: '0 0 4px rgba(0,0,0,0.4)',
+            }} />
+          </div>
+        </Marker>
+      )}
+
       <EventLayer events={events} onFeatureClick={setSelectedEventId} />
     </Map>
   )

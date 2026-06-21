@@ -32,7 +32,12 @@ export default function HomePage() {
         />
 
         <main className="flex-1 relative min-w-0">
-          <MapCanvas events={events} />
+          <MapCanvas
+            events={events}
+            userLat={lat}
+            userLng={lng}
+            usingDefaultLocation={usingDefault}
+          />
         </main>
       </div>
     </div>

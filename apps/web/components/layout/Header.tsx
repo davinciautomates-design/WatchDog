@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 import { Sun, Moon, Monitor, SidebarIcon } from 'lucide-react'
 import { useUI } from '@/store/ui'
@@ -7,13 +8,18 @@ import { useUI } from '@/store/ui'
 export function Header() {
   const { resolvedTheme, setTheme } = useTheme()
   const toggleSidebar = useUI((s) => s.toggleSidebar)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => setMounted(true), [])
 
   const cycleTheme = () => {
     const next = resolvedTheme === 'dark' ? 'light' : 'dark'
     setTheme(next)
   }
 
-  const ThemeIcon = resolvedTheme === 'dark' ? Moon : Sun
+  // Render a neutral icon until mounted so server and client HTML match.
+  // After mount, next-themes has resolved the theme and we show the correct icon.
+  const ThemeIcon = mounted ? (resolvedTheme === 'dark' ? Moon : Sun) : Monitor
 
   return (
     <header className="flex h-14 items-center border-b border-border bg-background px-4 gap-3 shrink-0 z-10">
