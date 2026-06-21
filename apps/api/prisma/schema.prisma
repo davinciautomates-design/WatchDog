@@ -1,0 +1,116 @@
+// Prisma schema for Watch Dog
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum SourceType {
+  OFFICIAL_API
+  GOV_DATA
+  MUNICIPAL
+  RSS
+  USER
+}
+
+enum Category {
+  POLICE
+  FIRE
+  AMBULANCE
+  ROAD
+  CRIME
+  DISTURBANCE
+  SAFETY
+  COMMUNITY
+}
+
+enum EventStatus {
+  ACTIVE
+  EXPIRING
+  EXPIRED
+  ARCHIVED
+}
+
+enum ReportStatus {
+  PENDING
+  ACTIVE
+  MERGED
+  REJECTED
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model Event {
+  id          String      @id @default(uuid())
+  sourceId    String?     @map("source_id")
+  sourceType  SourceType  @map("source_type")
+  category    Category
+  title       String
+  description String      @db.Text
+  // location stored as PostGIS geography(Point, 4326) via raw migration
+  // Queried using $queryRaw with ST_DWithin / ST_AsGeoJSON
+  address     String?
+  confidence  Int         @default(0)
+  status      EventStatus @default(ACTIVE)
+  startedAt   DateTime    @map("started_at")
+  expiresAt   DateTime?   @map("expires_at")
+  rawPayload  Json        @map("raw_payload")
+  metadata    Json        @default("{}")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  reports Report[]
+
+  @@unique([sourceId, sourceType])
+  @@map("events")
+}
+
+model Report {
+  id          String       @id @default(uuid())
+  eventId     String?      @map("event_id")
+  event       Event?       @relation(fields: [eventId], references: [id])
+  category    Category
+  description String       @db.Text
+  photoUrl    String?      @map("photo_url")
+  // location stored as PostGIS geography(Point, 4326) via raw migration
+  ipHash      String       @map("ip_hash")
+  confidence  Int          @default(30)
+  upvoteCount Int          @default(0) @map("upvote_count")
+  verifyCount Int          @default(0) @map("verify_count")
+  status      ReportStatus @default(PENDING)
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  upvotes Upvote[]
+
+  @@map("reports")
+}
+
+model Upvote {
+  id        String   @id @default(uuid())
+  reportId  String   @map("report_id")
+  report    Report   @relation(fields: [reportId], references: [id])
+  ipHash    String   @map("ip_hash")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([reportId, ipHash])
+  @@map("upvotes")
+}
+
+// Audit trail for every background data source poll
+model DataSourceRun {
+  id         String   @id @default(uuid())
+  sourceName String   @map("source_name")
+  fetchedAt  DateTime @map("fetched_at")
+  eventCount Int      @map("event_count")
+  error      String?
+  durationMs Int      @map("duration_ms")
+
+  @@map("data_source_runs")
+}

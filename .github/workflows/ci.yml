@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel in-progress runs when a new commit is pushed to the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── Lint ─────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npx turbo lint
+
+  # ─── Type Check ───────────────────────────────────────────────────────────
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npx turbo typecheck
+
+  # ─── Unit + Integration Tests ─────────────────────────────────────────────
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: watchdog
+          POSTGRES_PASSWORD: watchdog
+          POSTGRES_DB: watchdog_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U watchdog"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      # Enable PostGIS extension in the test database
+      - name: Enable PostGIS
+        run: |
+          PGPASSWORD=watchdog psql -h localhost -U watchdog -d watchdog_test \
+            -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+      - run: npx turbo test
+        env:
+          DATABASE_URL: postgresql://watchdog:watchdog@localhost:5432/watchdog_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+
+  # ─── Build ────────────────────────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npx turbo build
+        env:
+          # Required for Next.js to build without throwing on missing env vars
+          NEXT_PUBLIC_API_URL: http://localhost:3001
+          MAPBOX_ACCESS_TOKEN: placeholder_for_ci_build
