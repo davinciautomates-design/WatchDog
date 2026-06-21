@@ -80,7 +80,7 @@ export async function findEventsNearby({
             ${radiusMetres}
           )
     ${catFilter}
-    ORDER BY e.confidence DESC, e.started_at DESC
+    ORDER BY e.confidence DESC, e.category, e.started_at DESC
     LIMIT  ${limit}
     OFFSET ${offset}
   `

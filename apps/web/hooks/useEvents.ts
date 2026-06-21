@@ -10,7 +10,7 @@ export function useEvents(lat: number | null, lng: number | null) {
 
   return useQuery({
     queryKey: ['events', lat, lng, radiusKm, [...categories].sort()],
-    queryFn: () => fetchEvents({ lat: lat!, lng: lng!, radiusKm, categories }),
+    queryFn: () => fetchEvents({ lat: lat!, lng: lng!, radiusKm, categories, limit: 5000 }),
     enabled: lat != null && lng != null,
     refetchInterval: 30_000,
     staleTime: 25_000,

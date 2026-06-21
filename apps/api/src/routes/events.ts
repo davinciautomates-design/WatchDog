@@ -22,7 +22,7 @@ const eventsQuerySchema = z.object({
       val ? (val.split(',').filter((c) => VALID_CATEGORIES.includes(c as Category)) as Category[]) : [],
     ),
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(50),
+  limit: z.coerce.number().int().min(1).max(5000).default(2000),
 })
 
 export async function eventsRoute(fastify: FastifyInstance) {
