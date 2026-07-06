@@ -12,7 +12,7 @@ services:
       npx prisma migrate deploy &&
       npx tsx scripts/setup-postgis.ts
     startCommand: node apps/api/dist/index.js
-    healthCheckPath: /health
+    healthCheckPath: /api/v1/health
     envVars:
       - key: NODE_ENV
         value: production
