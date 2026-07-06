@@ -38,8 +38,8 @@ coverage/
 playwright-report/
 test-results/
 
-# Prisma
-prisma/migrations/**/migration.sql
+# TypeScript incremental build info
+*.tsbuildinfo
 
 # Docker volumes (if mounted locally)
 postgres_data/

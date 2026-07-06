@@ -4,11 +4,12 @@ import { Queue, Worker, type Processor } from 'bullmq'
 // separate `ioredis` package is also installed. Passing a plain options object
 // bypasses this entirely — BullMQ accepts raw RedisOptions too.
 function redisOpts(url: string) {
-  const { hostname, port, password } = new URL(url)
+  const { hostname, port, password, protocol } = new URL(url)
   return {
     host: hostname,
     port: Number(port) || 6379,
     ...(password ? { password } : {}),
+    ...(protocol === 'rediss:' ? { tls: {} } : {}),
     maxRetriesPerRequest: null, // required by BullMQ for blocking commands
   }
 }

@@ -1,0 +1,6 @@
+{
+  "buildCommand": "npx turbo build --filter=@watchdog/web...",
+  "outputDirectory": "apps/web/.next",
+  "installCommand": "npm ci",
+  "framework": "nextjs"
+}
