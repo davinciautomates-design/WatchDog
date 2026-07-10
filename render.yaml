@@ -29,3 +29,23 @@ services:
         sync: false
       - key: CORS_ORIGINS
         sync: false
+
+  - type: web
+    name: watchdog-web
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: >-
+      npm ci &&
+      npx turbo build --filter=@watchdog/web...
+    startCommand: cd apps/web && npx next start -p $PORT
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://watchdog-bd9o.onrender.com
+      - key: NEXT_IGNORE_NODE_VERSION
+        value: "1"
+      - key: NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+        sync: false
