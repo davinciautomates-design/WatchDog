@@ -6,7 +6,8 @@
     "moduleResolution": "node",
     "ignoreDeprecations": "6.0",
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "types": ["node"]
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
