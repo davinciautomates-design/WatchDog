@@ -136,6 +136,6 @@ See `docs/adr/` for full context. Short version:
 
 - Never store raw IP addresses — hash with SHA-256 first
 - Never put secrets in code or `.env.example` values
-- Never commit directly to `main` — always use a PR
+- Pushing directly to `main` is allowed — no PR required (solo project)
 - Never skip tests to ship faster — the Definition of Done requires them
 - Never add `@ts-ignore` without a comment explaining the reason and a TODO
