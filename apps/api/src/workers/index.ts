@@ -32,6 +32,11 @@ const JOB_TFS_LIVECAD          = 'tfs-livecad'
 const JOB_TPS_CFS              = 'tps-cfs'
 const JOB_EVENT_LIFECYCLE      = 'event-lifecycle'
 
+// Keep concurrent DB writes well below the connection pool limit (default: 9).
+// Large sources like toronto-road-restrictions return 2000+ events; fanning them
+// all out at once exhausts the pool and causes timeout errors on Render/Railway.
+const UPSERT_CONCURRENCY = 5
+
 async function runSource(
   sourceName: string,
   fetchRaw: () => Promise<unknown>,
@@ -46,7 +51,9 @@ async function runSource(
     const events = parseEvents(raw)
     eventCount = events.length
 
-    await Promise.allSettled(events.map((event) => upsertEvent(event)))
+    for (let i = 0; i < events.length; i += UPSERT_CONCURRENCY) {
+      await Promise.allSettled(events.slice(i, i + UPSERT_CONCURRENCY).map(upsertEvent))
+    }
 
     logger.info({ sourceName, eventCount }, 'Data source run complete')
   } catch (err) {
