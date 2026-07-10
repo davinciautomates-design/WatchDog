@@ -13,12 +13,14 @@
     "test": "turbo test",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\" --ignore-path .prettierignore"
   },
+  "dependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0"
+  },
   "devDependencies": {
     "prettier": "^3.2.0",
     "prettier-plugin-tailwindcss": "^0.6.0",
-    "turbo": "^2.0.0",
-    "typescript": "^5.4.0",
-    "@types/node": "^20.0.0"
+    "turbo": "^2.0.0"
   },
   "packageManager": "npm@9.5.1",
   "engines": {

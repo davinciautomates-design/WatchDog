@@ -5,7 +5,7 @@ services:
     plan: free
     region: oregon
     buildCommand: >-
-      NODE_ENV=development npm ci &&
+      npm ci &&
       npx turbo build --filter=@watchdog/api... &&
       cd apps/api &&
       npx prisma migrate deploy &&
