@@ -5,7 +5,7 @@ services:
     plan: free
     region: oregon
     buildCommand: >-
-      npm ci &&
+      npm ci --include=dev &&
       npx turbo build --filter=@watchdog/api...
     startCommand: >-
       cd apps/api &&
@@ -36,7 +36,7 @@ services:
     plan: free
     region: oregon
     buildCommand: >-
-      npm ci &&
+      npm ci --include=dev &&
       npx turbo build --filter=@watchdog/web...
     startCommand: cd apps/web && npx next start -p $PORT
     healthCheckPath: /
