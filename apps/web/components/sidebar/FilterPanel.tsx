@@ -1,7 +1,6 @@
 'use client'
 
 import { CATEGORY_META } from '@watchdog/types'
-import type { Category } from '@watchdog/types'
 import { useFilters, ALL_CATEGORIES } from '@/store/filters'
 import { clsx } from 'clsx'
 
