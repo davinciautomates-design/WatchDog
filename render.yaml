@@ -44,7 +44,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_URL
-        value: https://watchdog-bd9o.onrender.com
+        value: https://watchdog-api-dugi.onrender.com
       - key: NEXT_IGNORE_NODE_VERSION
         value: "1"
       - key: NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
