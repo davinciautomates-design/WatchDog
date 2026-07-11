@@ -101,7 +101,7 @@ export function MapCanvas({ events, userLat, userLng, usingDefaultLocation }: Ma
         onError={(e) => setMapError(e.error?.message ?? 'Unknown map error')}
       >
         <NavigationControl position="bottom-right" />
-        <GeolocateControl position="bottom-right" trackUserLocation showAccuracyCircle />
+        <GeolocateControl position="bottom-right" showUserLocation={false} />
 
         {userLat != null && userLng != null && !usingDefaultLocation && (
           <Marker longitude={userLng} latitude={userLat} anchor="center">

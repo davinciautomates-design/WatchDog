@@ -69,6 +69,9 @@ export function EventList({ events, isLoading, isError, usingDefaultLocation }: 
     )
   }
 
+  const communityEvents = events.filter((e) => e.sourceType === 'USER')
+  const officialEvents = events.filter((e) => e.sourceType !== 'USER')
+
   return (
     <div className="overflow-y-auto flex-1">
       {usingDefaultLocation && (
@@ -79,7 +82,29 @@ export function EventList({ events, isLoading, isError, usingDefaultLocation }: 
       <p className="px-4 py-2 text-xs text-muted-foreground">
         {events.length} event{events.length !== 1 ? 's' : ''} {isLoading ? '(refreshing…)' : ''}
       </p>
-      {events.map((event) => (
+
+      {communityEvents.length > 0 && (
+        <>
+          <p className="px-4 pt-1 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Community Reports
+          </p>
+          {communityEvents.map((event) => (
+            <EventListItem
+              key={event.id}
+              event={event}
+              isSelected={event.id === selectedEventId}
+              onClick={() => setSelectedEventId(event.id === selectedEventId ? null : event.id)}
+            />
+          ))}
+          {officialEvents.length > 0 && (
+            <p className="px-4 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Official Reports
+            </p>
+          )}
+        </>
+      )}
+
+      {officialEvents.map((event) => (
         <EventListItem
           key={event.id}
           event={event}
